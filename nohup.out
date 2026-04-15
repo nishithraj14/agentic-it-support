@@ -1,0 +1,32 @@
+INFO:root:[BM25] Loaded 50 documents
+/home/ubuntu/agentic-it-support/app/rag/vector_store.py:15: LangChainPendingDeprecationWarning: This class is pending deprecation and may be removed in a future version. You can swap to using the `PGVector` implementation in `langchain_postgres`. Please read the guidelines in the doc-string of this class to follow prior to migrating as there are some differences between the implementations. See <https://github.com/langchain-ai/langchain-postgres> for details about the new implementation.
+  return PGVector(
+/home/ubuntu/agentic-it-support/app/rag/vector_store.py:15: LangChainPendingDeprecationWarning: Please use JSONB instead of JSON for metadata. This change will allow for more efficient querying that involves filtering based on metadata. Please note that filtering operators have been changed when using JSONB metadata to be prefixed with a $ sign to avoid name collisions with columns. If you're using an existing database, you will need to create a db migration for your metadata column to be JSONB and update your queries to use the new operators. 
+  return PGVector(
+INFO:     Started server process [3185]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:root:[BM25] Loaded 50 documents
+/home/ubuntu/agentic-it-support/app/rag/vector_store.py:15: LangChainPendingDeprecationWarning: This class is pending deprecation and may be removed in a future version. You can swap to using the `PGVector` implementation in `langchain_postgres`. Please read the guidelines in the doc-string of this class to follow prior to migrating as there are some differences between the implementations. See <https://github.com/langchain-ai/langchain-postgres> for details about the new implementation.
+  return PGVector(
+/home/ubuntu/agentic-it-support/app/rag/vector_store.py:15: LangChainPendingDeprecationWarning: Please use JSONB instead of JSON for metadata. This change will allow for more efficient querying that involves filtering based on metadata. Please note that filtering operators have been changed when using JSONB metadata to be prefixed with a $ sign to avoid name collisions with columns. If you're using an existing database, you will need to create a db migration for your metadata column to be JSONB and update your queries to use the new operators. 
+  return PGVector(
+INFO:     Started server process [3187]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 98] error while attempting to bind on address ('0.0.0.0', 8000): address already in use
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     49.37.155.197:63019 - "GET /docs HTTP/1.1" 200 OK
+INFO:     49.37.155.197:63019 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:root:[API] Received ticket: vpn is not working
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:root:[HYBRID] Query: vpn is not working
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+INFO:root:[HYBRID] Retrieved 2 docs, score=0.91
+INFO:root:[RETRIEVER] score=0.91
+INFO:root:[VALIDATOR] length=457, score=0.91
+INFO:root:[DECISION] category=vpn_issue, confidence=0.90, context_score=0.91
+INFO:root:[DECISION] → resolve
+INFO:     49.37.155.197:1067 - "POST /resolve HTTP/1.1" 200 OK
