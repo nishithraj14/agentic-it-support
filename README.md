@@ -286,7 +286,7 @@ GitHub Repository
 **Rathnakaram Nishith Bharadwaj Raju**
 GenAI Engineer · LangChain · LangGraph · RAG Systems · AWS
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=flat-square&logo=linkedin)](https://linkedin.com/in/nishithraj)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/r-nishith)
 [![GitHub](https://img.shields.io/badge/GitHub-nishithraj14-181717?style=flat-square&logo=github)](https://github.com/nishithraj14/agentic-it-support)
 [![Email](https://img.shields.io/badge/Email-nishithraj.00@gmail.com-EA4335?style=flat-square&logo=gmail)](mailto:nishithraj.00@gmail.com)
 
