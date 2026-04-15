@@ -1,50 +1,40 @@
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph
 from app.graph.state import AgentState
 
 from app.graph.nodes.classifier import classify
 from app.graph.nodes.retriever_node import retrieve
 from app.graph.nodes.context_validator import validate_context
 from app.graph.nodes.decision import decide
-from app.graph.nodes.tool_selector import select_tool
 from app.graph.nodes.resolver import resolve
 from app.graph.nodes.escalation import escalate
 
 
 def build_graph():
-    graph = StateGraph(AgentState)
+    builder = StateGraph(AgentState)
 
-    # Nodes
-    graph.add_node("classify", classify)
-    graph.add_node("retrieve", retrieve)
-    graph.add_node("validate", validate_context)
-    graph.add_node("decide", decide)
-    graph.add_node("tool", select_tool)
-    graph.add_node("resolve", resolve)
-    graph.add_node("escalate", escalate)
+    builder.add_node("classifier", classify)
+    builder.add_node("retriever", retrieve)
+    builder.add_node("validator", validate_context)
+    builder.add_node("decision", decide)
+    builder.add_node("resolver", resolve)
+    builder.add_node("escalation", escalate)
 
-    # Entry
-    graph.set_entry_point("classify")
+    builder.set_entry_point("classifier")
 
-    # Flow
-    graph.add_edge("classify", "retrieve")
-    graph.add_edge("retrieve", "validate")
-    graph.add_edge("validate", "decide")
+    builder.add_edge("classifier", "retriever")
+    builder.add_edge("retriever", "validator")
+    builder.add_edge("validator", "decision")
 
-    # Decision routing
-    graph.add_conditional_edges(
-        "decide",
+    builder.add_conditional_edges(
+        "decision",
         lambda state: state["decision"],
         {
-            "resolve": "tool",
-            "escalate": "escalate"
+            "resolve": "resolver",
+            "escalate": "escalation"
         }
     )
 
-    # Resolution path
-    graph.add_edge("tool", "resolve")
-    graph.add_edge("resolve", END)
+    builder.set_finish_point("resolver")
+    builder.set_finish_point("escalation")
 
-    # Escalation path
-    graph.add_edge("escalate", END)
-
-    return graph.compile()
+    return builder.compile()

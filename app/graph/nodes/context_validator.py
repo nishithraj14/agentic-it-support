@@ -1,24 +1,28 @@
 import logging
 
-logging.basicConfig(level=logging.INFO)
-
-
 def validate_context(state):
     context = state.get("context", "")
-    score = state.get("context_score", 0)
 
-    logging.info(f"[VALIDATOR] length={len(context)}, score={score:.2f}")
+    if not context or "No relevant policy" in context:
+        logging.info("[VALIDATOR] No valid context")
+        return {
+            "context_valid": False,
+            "context_score": 0.0
+        }
 
-    # Add signal only (no decision override)
-    if not context or len(context) < 50:
-        logging.warning("[VALIDATOR] Weak context detected")
-        state["context_flag"] = "weak"
+    length = len(context)
 
-    elif score < 0.3:
-        logging.warning("[VALIDATOR] Low relevance detected")
-        state["context_flag"] = "low_score"
-
+    # Heuristic scoring
+    if length > 800:
+        score = 0.9
+    elif length > 300:
+        score = 0.7
     else:
-        state["context_flag"] = "good"
+        score = 0.5
 
-    return state
+    logging.info(f"[VALIDATOR] length={length}, score={score}")
+
+    return {
+        "context_valid": True,
+        "context_score": score
+    }
