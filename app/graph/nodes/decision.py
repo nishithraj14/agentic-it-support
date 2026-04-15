@@ -1,6 +1,7 @@
 import logging
 
 HIGH_RISK = ["access_request"]
+
 AUTO_RESOLVE = [
     "vpn_issue",
     "email_issue",
@@ -13,26 +14,23 @@ AUTO_RESOLVE = [
 def decide(state):
     category = state.get("category")
     confidence = state.get("confidence", 0)
-    context_valid = state.get("context_valid", False)
-    context_score = state.get("context_score", 0)
+    context = state.get("context", "")
 
-    logging.info(
-        f"[DECISION] category={category}, confidence={confidence}, context_score={context_score}"
-    )
+    logging.info(f"[DECISION] category={category}, confidence={confidence}")
 
-    # 🔴 Always escalate high-risk
+    # 🔴 High-risk always escalate
     if category in HIGH_RISK:
         logging.info("[DECISION] → escalate (high-risk)")
         return {"decision": "escalate"}
 
-    # 🔥 Strong auto-resolve rule
-    if (
-        category in AUTO_RESOLVE
-        and confidence >= 0.7
-        and context_valid
-        and context_score >= 0.5
-    ):
-        logging.info("[DECISION] → resolve (auto-resolve category)")
+    # 🔴 No context → escalate
+    if not context or "No relevant policy" in context:
+        logging.info("[DECISION] → escalate (no context)")
+        return {"decision": "escalate"}
+
+    # 🔥 Auto-resolve categories
+    if category in AUTO_RESOLVE and confidence >= 0.7:
+        logging.info("[DECISION] → resolve")
         return {"decision": "resolve"}
 
     # fallback

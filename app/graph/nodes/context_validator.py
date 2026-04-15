@@ -12,7 +12,6 @@ def validate_context(state):
 
     length = len(context)
 
-    # Heuristic scoring
     if length > 800:
         score = 0.9
     elif length > 300:

@@ -43,7 +43,7 @@ def filter_by_category(category):
         if any(k in doc["name"] for k in keywords)
     ]
 
-    # Controlled fallback (domain-safe)
+    # Controlled fallback
     if not filtered and category == "account_unlock":
         filtered = [
             doc for doc in corpus
@@ -63,7 +63,6 @@ def hybrid_search(query: str, category: str = None):
 
     texts = [doc["text"] for doc in filtered_docs]
 
-    # BM25
     tokenized = [doc.split() for doc in texts]
     bm25 = BM25Okapi(tokenized)
 
@@ -77,7 +76,7 @@ def hybrid_search(query: str, category: str = None):
 
     results = [texts[i] for i in top_idx]
 
-    # Lightweight semantic rerank (keyword density)
+    # lightweight rerank
     results = sorted(
         results,
         key=lambda d: sum(word in d.lower() for word in query.lower().split()),
