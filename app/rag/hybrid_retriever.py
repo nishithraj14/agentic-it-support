@@ -1,12 +1,8 @@
-import os
-import logging
-from rank_bm25 import BM25Okapi
 from app.rag.retriever import get_retriever
+from rank_bm25 import BM25Okapi
+import os
 
-logging.basicConfig(level=logging.INFO)
-
-
-# 📦 Load policy corpus
+# ---------------- LOAD CORPUS ----------------
 def load_corpus():
     docs = []
     path = "data/policies"
@@ -14,66 +10,77 @@ def load_corpus():
     for file in os.listdir(path):
         if file.endswith(".md"):
             with open(os.path.join(path, file), encoding="utf-8") as f:
-                docs.append(f.read())
+                docs.append({
+                    "text": f.read(),
+                    "name": file.lower()
+                })
 
-    logging.info(f"[BM25] Loaded {len(docs)} documents")
     return docs
 
 
 corpus = load_corpus()
-tokenized_corpus = [doc.split() for doc in corpus]
+tokenized = [doc["text"].split() for doc in corpus]
 
-bm25 = BM25Okapi(tokenized_corpus)
+bm25 = BM25Okapi(tokenized)
+dense = get_retriever()
 
-# 🔍 Dense retriever (Neon DB)
-dense_retriever = get_retriever()
+# ---------------- CATEGORY → FILE FILTER ----------------
+CATEGORY_FILE_MAP = {
+    "vpn_issue": ["vpn"],
+    "network_issue": ["network", "wifi"],
+    "password_reset": ["password"],
+    "device_issue": ["device", "bsod", "hardware"],
+    "email_issue": ["email"],
+    "access_request": ["access"]
+}
 
 
-# 🚀 FINAL HYBRID SEARCH
-def hybrid_search(query: str):
-    logging.info(f"[HYBRID] Query: {query}")
+# ---------------- FILTER FUNCTION ----------------
+def filter_by_category(category):
+    if not category:
+        return corpus
 
-    # 🔹 1. Dense retrieval
-    try:
-        dense_docs = dense_retriever.invoke(query)
-        dense_texts = [doc.page_content for doc in dense_docs]
-    except Exception as e:
-        logging.error(f"[HYBRID] Dense retrieval failed: {e}")
-        dense_texts = []
+    keywords = CATEGORY_FILE_MAP.get(category, [])
 
-    # 🔹 2. BM25 retrieval
-    tokenized_query = query.split()
-    bm25_scores = bm25.get_scores(tokenized_query)
+    filtered = [
+        doc for doc in corpus
+        if any(k in doc["name"] for k in keywords)
+    ]
 
-    top_indices = sorted(
-        range(len(bm25_scores)),
-        key=lambda i: bm25_scores[i],
-        reverse=True
-    )[:3]
+    return filtered if filtered else corpus
 
-    bm25_docs = [corpus[i] for i in top_indices]
 
-    # 🔹 3. Combine results
-    combined = dense_texts + bm25_docs
+# ---------------- HYBRID SEARCH ----------------
+def hybrid_search(query: str, category: str = None):
 
-    # 🔹 4. Remove duplicates
+    # 🔴 STRICT FILTER FIRST
+    filtered_docs = filter_by_category(category)
+
+    texts = [doc["text"] for doc in filtered_docs]
+    tokenized_local = [doc.split() for doc in texts]
+
+    bm25_local = BM25Okapi(tokenized_local)
+
+    # BM25
+    scores = bm25_local.get_scores(query.split())
+    top_idx = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:3]
+
+    bm25_docs = [texts[i] for i in top_idx]
+
+    # Dense
+    dense_docs = dense.invoke(query)
+    dense_texts = [doc.page_content for doc in dense_docs]
+
+    # Merge
+    combined = bm25_docs + dense_texts
+
+    # Remove duplicates
     seen = set()
-    unique_docs = []
+    final = []
 
     for doc in combined:
         if doc not in seen:
             seen.add(doc)
-            unique_docs.append(doc)
+            final.append(doc[:400])
 
-    # 🔹 5. Simple ranking (NO LLM → fast)
-    final_docs = unique_docs[:2]
-
-    # 🔹 6. Build context
-    context = "\n\n".join(final_docs)
-
-    # 🔹 7. Score (simple heuristic)
-    context_score = min(len(context) / 500, 1.0)
-
-    logging.info(f"[HYBRID] Retrieved {len(final_docs)} docs, score={context_score:.2f}")
-
-    return context, context_score
+    return "\n\n".join(final[:3])
