@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual env
+venv/
+
+# Secrets
+.env
+*.pem
+
+# Test files
+test_*.py
+system_*.py
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Streamlit cache
+.streamlit/
