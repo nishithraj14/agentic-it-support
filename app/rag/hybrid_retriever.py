@@ -1,4 +1,3 @@
-from app.rag.retriever import get_retriever
 from rank_bm25 import BM25Okapi
 import os
 
@@ -19,26 +18,22 @@ def load_corpus():
 
 
 corpus = load_corpus()
-tokenized = [doc["text"].split() for doc in corpus]
 
-bm25 = BM25Okapi(tokenized)
-dense = get_retriever()
-
-# ---------------- CATEGORY → FILE FILTER ----------------
+# ---------------- CATEGORY MAP ----------------
 CATEGORY_FILE_MAP = {
     "vpn_issue": ["vpn"],
     "network_issue": ["network", "wifi"],
     "password_reset": ["password"],
-    "device_issue": ["device", "bsod", "hardware"],
+    "device_issue": ["device", "disk", "performance"],
     "email_issue": ["email"],
-    "access_request": ["access"]
+    "access_request": ["access", "database"]
 }
 
 
-# ---------------- FILTER FUNCTION ----------------
+# ---------------- FILTER ----------------
 def filter_by_category(category):
     if not category:
-        return corpus
+        return []
 
     keywords = CATEGORY_FILE_MAP.get(category, [])
 
@@ -47,40 +42,27 @@ def filter_by_category(category):
         if any(k in doc["name"] for k in keywords)
     ]
 
-    return filtered if filtered else corpus
+    return filtered
 
 
 # ---------------- HYBRID SEARCH ----------------
 def hybrid_search(query: str, category: str = None):
 
-    # 🔴 STRICT FILTER FIRST
+    # 🔴 STRICT FILTER
     filtered_docs = filter_by_category(category)
 
+    if not filtered_docs:
+        return "No relevant policy found"
+
     texts = [doc["text"] for doc in filtered_docs]
-    tokenized_local = [doc.split() for doc in texts]
 
-    bm25_local = BM25Okapi(tokenized_local)
+    tokenized = [doc.split() for doc in texts]
+    bm25 = BM25Okapi(tokenized)
 
-    # BM25
-    scores = bm25_local.get_scores(query.split())
-    top_idx = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:3]
+    scores = bm25.get_scores(query.split())
 
-    bm25_docs = [texts[i] for i in top_idx]
+    top_idx = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:2]
 
-    # Dense
-    dense_docs = dense.invoke(query)
-    dense_texts = [doc.page_content for doc in dense_docs]
+    results = [texts[i] for i in top_idx]
 
-    # Merge
-    combined = bm25_docs + dense_texts
-
-    # Remove duplicates
-    seen = set()
-    final = []
-
-    for doc in combined:
-        if doc not in seen:
-            seen.add(doc)
-            final.append(doc[:400])
-
-    return "\n\n".join(final[:3])
+    return "\n\n".join(results)
